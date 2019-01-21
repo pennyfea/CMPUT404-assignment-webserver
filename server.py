@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -28,11 +29,73 @@ import socketserver
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
+
+
+    http_message = ""
+    dir = "/www"
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        # print ("Got a request of: %s\n" % self.data)
+        # self.request.sendall(bytearray("OK",'utf-8'))
+
+        httpRequest = self.data.splitlines()
+        httpRequestMethod = httpRequest[0].decode().split()
+
+        print(httpRequestMethod)
+        print("Request method: %s\n" % httpRequestMethod[0])
+
+        if(httpRequestMethod[0] == "GET"):
+            
+            requestedFile =  httpRequestMethod[1]
+            print(requestedFile)
+            print("Requested File: ", requestedFile)
+
+            path = os.path.abspath(os.getcwd() + self.dir + requestedFile)
+            print(os.path.realpath(path))
+            print("This is your path: ", path)
+
+            if (os.path.exists(path)):
+
+                if(path.endswith('.css')):
+                    self.http_message = ("HTTP/1.1/ 200 OK\n"+
+                                        "Conten-Type: text/css\n\n"+
+                                        open(path).read())
+
+                                     
+                elif(path.endswith('.html')):
+                    self.http_message = ("HTTP/1.1/ 200 OK\n"+
+                                        "Conten-Type: text/html\n\n"+
+                                        open(path).read())
+                
+                else:
+                    self.http_message = ("HTTP/1.1/ 404 Not found\n"+
+                                    "Conten-Type: text/html\n\n"+ 
+                                    "<!DOCTYPE html>\n"+
+                                    "<html><body>404: Sorry, Not found\n"+
+                                    "</body></html>")
+
+        else:
+
+            self.http_message = ("HTTP/1.1 405 Method Not Allowed\n"+
+                        "Content-Type: text/html\n\n"+
+                        "<!DOCTYPE html>\n"+
+                        "<html><body>405: Method Not Allowed\n"+
+                        "</body></html>")
+        
+        self.request.sendall(self.http_message.encode('utf-8'))
+        
+
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
