@@ -52,16 +52,16 @@ class MyWebServer(socketserver.BaseRequestHandler):
             print("Requested File: ", requestedFile)
 
             path = os.path.abspath(os.getcwd() + self.dir + requestedFile)
-            print(os.path.realpath(path))
+            print("Real path: ", os.path.realpath(path))
             print("This is your path: ", path)
 
-            if (os.path.exists(path)):
+            if (os.path.exists(path) and os.path.isfile(path)):
 
                 if(path.endswith('.css')):
                     self.http_message = ("HTTP/1.1/ 200 OK\n"+
                                         "Conten-Type: text/css\n\n"+
                                         open(path).read())
-
+                
                                      
                 elif(path.endswith('.html')):
                     self.http_message = ("HTTP/1.1/ 200 OK\n"+
@@ -74,6 +74,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
                                     "<!DOCTYPE html>\n"+
                                     "<html><body>404: Sorry, Not found\n"+
                                     "</body></html>")
+        
+            if(os.path.isdir(path)):
+                print("dir: ", os.path.isdir(path))
+                self.http_message = ("HTTP/1.1/ 200 OK\n"+
+                    "Conten-Type: text/html\n\n"+
+                    open(path+"/index.html").read()) 
+            
 
         else:
 
@@ -85,17 +92,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         self.request.sendall(self.http_message.encode('utf-8'))
         
-
-
-
-
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
