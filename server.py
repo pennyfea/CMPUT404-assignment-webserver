@@ -55,43 +55,54 @@ class MyWebServer(socketserver.BaseRequestHandler):
             print("Real path: ", os.path.realpath(path))
             print("This is your path: ", path)
 
-            if (os.path.exists(path) and os.path.isfile(path)):
+            if (os.path.exists(path)):
 
                 if(path.endswith('.css')):
                     self.http_message = ("HTTP/1.1/ 200 OK\n"+
-                                        "Conten-Type: text/css\n\n"+
+                                        "Content-Type: text/css \n\n"+
                                         open(path).read())
                 
                                      
                 elif(path.endswith('.html')):
                     self.http_message = ("HTTP/1.1/ 200 OK\n"+
-                                        "Conten-Type: text/html\n\n"+
+                                        "Content-Type: text/html\n\n"+
                                         open(path).read())
                 
                 else:
                     self.http_message = ("HTTP/1.1/ 404 Not found\n"+
-                                    "Conten-Type: text/html\n\n"+ 
-                                    "<!DOCTYPE html>\n"+
-                                    "<html><body>404: Sorry, Not found\n"+
-                                    "</body></html>")
+                                        "Content-Type: text/html\n\n"+ 
+                                        "<!DOCTYPE html>\n"+
+                                        "<html><body>404 Not found\n"+
+                                        "</body></html>")
         
+
+     
             if(os.path.isdir(path)):
                 print("dir: ", os.path.isdir(path))
                 self.http_message = ("HTTP/1.1/ 200 OK\n"+
-                    "Conten-Type: text/html\n\n"+
+                    "Content-Type: text/html\n\n"+
                     open(path+"/index.html").read()) 
             
+            else:
+                if not os.path.exists(path):
+                    self.http_message = ("HTTP/1.1/ 404 Not found\n"+
+                                        "Content-Type: text/html\n\n"+ 
+                                        "<!DOCTYPE html>\n"+
+                                        "<html><body>404 Not found\n"+
+                                        "</body></html>")
+        
 
         else:
 
             self.http_message = ("HTTP/1.1 405 Method Not Allowed\n"+
                         "Content-Type: text/html\n\n"+
                         "<!DOCTYPE html>\n"+
-                        "<html><body>405: Method Not Allowed\n"+
+                        "<html><body>405 Method Not Allowed\n"+
                         "</body></html>")
         
         self.request.sendall(self.http_message.encode('utf-8'))
         
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
