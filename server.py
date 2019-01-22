@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 #  coding: utf-8 
 import socketserver
 import os
@@ -40,6 +42,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # self.request.sendall(bytearray("OK",'utf-8'))
 
         httpRequest = self.data.splitlines()
+        print(self.data)
         httpRequestMethod = httpRequest[0].decode().split()
 
         print(httpRequestMethod)
@@ -55,52 +58,44 @@ class MyWebServer(socketserver.BaseRequestHandler):
             print("Real path: ", os.path.realpath(path))
             print("This is your path: ", path)
 
-            if (os.path.exists(path)):
-
-                if(path.endswith('.css')):
-                    self.http_message = ("HTTP/1.1/ 200 OK\n"+
-                                        "Content-Type: text/css \n\n"+
-                                        open(path).read())
+            if (os.path.isfile(path) and requestedFile in os.path.realpath(path)):
                 
+                # Handles mime types
+                if(path.endswith('.css')):
+                    self.handle_200_status_codes(200, "css", path)
                                      
                 elif(path.endswith('.html')):
-                    self.http_message = ("HTTP/1.1/ 200 OK\n"+
-                                        "Content-Type: text/html\n\n"+
-                                        open(path).read())
+                    self.handle_200_status_codes(200, "html", path)
                 
-                else:
-                    self.http_message = ("HTTP/1.1/ 404 Not found\n"+
-                                        "Content-Type: text/html\n\n"+ 
-                                        "<!DOCTYPE html>\n"+
-                                        "<html><body>404 Not found\n"+
-                                        "</body></html>")
-        
-
-     
-            if(os.path.isdir(path)):
-                print("dir: ", os.path.isdir(path))
-                self.http_message = ("HTTP/1.1/ 200 OK\n"+
-                    "Content-Type: text/html\n\n"+
-                    open(path+"/index.html").read()) 
+            # If dir exsits 
+            elif(os.path.isdir(path)):
+                self.handle_200_status_codes(200, "html", path+"/index.html")
             
+            # If it doesn't
             else:
-                if not os.path.exists(path):
-                    self.http_message = ("HTTP/1.1/ 404 Not found\n"+
-                                        "Content-Type: text/html\n\n"+ 
-                                        "<!DOCTYPE html>\n"+
-                                        "<html><body>404 Not found\n"+
-                                        "</body></html>")
+                self.handle_status_error_codes(404, "text/html", "Not found")
         
-
+        # IF NOT GET METHOD, 405 STATUS CODE
         else:
-
-            self.http_message = ("HTTP/1.1 405 Method Not Allowed\n"+
-                        "Content-Type: text/html\n\n"+
-                        "<!DOCTYPE html>\n"+
-                        "<html><body>405 Method Not Allowed\n"+
-                        "</body></html>")
+            self.handle_status_error_codes(405, "text/html", "Method Not Allowed")
         
+    
+    # Handles status error codes
+    def handle_status_error_codes(self, status_code, content_type, message):
+        self.http_message = ("HTTP/1.1 %d %s\n" % (status_code, message) +
+                            "Content-Type: %s\n\n" % (content_type) +
+                            "<html><body><center><h1>%d %s</center></h1>\n" % (status_code, message)+
+                            "</body></html>")
+
         self.request.sendall(self.http_message.encode('utf-8'))
+
+    def handle_200_status_codes(self,  status_code, file_type, path):
+        self.http_message = ("HTTP/1.1/ %d OK\n"  % (status_code)+
+                                        "Content-Type: text/%s\n\n" % (file_type)+
+                                        open(path).read()) 
+        self.request.sendall(self.http_message.encode('utf-8'))
+
+   
         
 
 
