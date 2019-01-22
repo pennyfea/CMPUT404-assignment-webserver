@@ -50,14 +50,19 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         if(httpRequestMethod[0] == "GET"):
             
+            # Debugging: Useful terminal info
+            ###########################################################
             requestedFile =  httpRequestMethod[1]
-            print(requestedFile)
-            print("Requested File: ", requestedFile)
+
+            # print(requestedFile)
+            # print("Requested File: ", requestedFile)
 
             path = os.path.abspath(os.getcwd() + self.dir + requestedFile)
-            print("Real path: ", os.path.realpath(path))
-            print("This is your path: ", path)
+            # print("Real path: ", os.path.realpath(path))
+            # print("This is your path: ", path)
+            ###########################################################
 
+            # Check if the path is a file and the requested path is in the realpath
             if (os.path.isfile(path) and requestedFile in os.path.realpath(path)):
                 
                 # Handles mime types
@@ -67,11 +72,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 elif(path.endswith('.html')):
                     self.handle_200_status_codes(200, "html", path)
                 
-            # If dir exsits 
+            # If dir exsits and ends with a /
             elif(os.path.isdir(path)):
                 self.handle_200_status_codes(200, "html", path+"/index.html")
             
-            # If it doesn't
+            # If it doesn't exisits
             else:
                 self.handle_status_error_codes(404, "text/html", "Not found")
         
@@ -89,6 +94,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         self.request.sendall(self.http_message.encode('utf-8'))
 
+    # Handles the 200 status codes
     def handle_200_status_codes(self,  status_code, file_type, path):
         self.http_message = ("HTTP/1.1/ %d OK\n"  % (status_code)+
                                         "Content-Type: text/%s\n\n" % (file_type)+
