@@ -76,7 +76,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
             elif(os.path.isdir(path)):
                 if requestedFile[-1] != "/":
                     self.handle_301_status_codes(301)
-                    pass
                 else:
                     self.handle_200_status_codes(200, "html", path+"/index.html")
             
