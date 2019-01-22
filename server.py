@@ -54,8 +54,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
             ###########################################################
             requestedFile =  httpRequestMethod[1]
 
-            # print(requestedFile)
-            # print("Requested File: ", requestedFile)
+            print(requestedFile)
+            print("Requested File: ", requestedFile)
 
             path = os.path.abspath(os.getcwd() + self.dir + requestedFile)
             # print("Real path: ", os.path.realpath(path))
@@ -74,21 +74,27 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 
             # If dir exsits and ends with a /
             elif(os.path.isdir(path)):
-                self.handle_200_status_codes(200, "html", path+"/index.html")
+                if requestedFile[-1] != "/":
+                    self.handle_301_status_codes(301)
+                    pass
+                else:
+                    self.handle_200_status_codes(200, "html", path+"/index.html")
             
+
+
             # If it doesn't exisits
             else:
-                self.handle_status_error_codes(404, "text/html", "Not found")
+                self.handle_404_405_codes(404, "Not found")
         
         # IF NOT GET METHOD, 405 STATUS CODE
         else:
-            self.handle_status_error_codes(405, "text/html", "Method Not Allowed")
+            self.handle_404_405_codes(405, "Method Not Allowed")
         
     
     # Handles status error codes
-    def handle_status_error_codes(self, status_code, content_type, message):
+    def handle_404_405_codes(self, status_code, message):
         self.http_message = ("HTTP/1.1 %d %s\n" % (status_code, message) +
-                            "Content-Type: %s\n\n" % (content_type) +
+                            "Content-Type: text/html\n\n"+
                             "<html><body><center><h1>%d %s</center></h1>\n" % (status_code, message)+
                             "</body></html>")
 
@@ -100,6 +106,15 @@ class MyWebServer(socketserver.BaseRequestHandler):
                                         "Content-Type: text/%s\n\n" % (file_type)+
                                         open(path).read()) 
         self.request.sendall(self.http_message.encode('utf-8'))
+    
+    # Handles the 301 status codes
+    def handle_301_status_codes(self, status_code):
+        self.http_message = ("HTTP/1.1 %d Moved Permanently\n" % (status_code) +
+                            "Content-Type: text/html\n\n"+
+                            "<html><body><center><h1>%d Moved Permanently</center></h1>\n" % (status_code)+
+                            "</body></html>")
+        self.request.sendall(self.http_message.encode('utf-8'))
+
 
    
         
