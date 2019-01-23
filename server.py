@@ -30,6 +30,13 @@ import os
 # try: curl -v -X GET http://127.0.0.1:8080/
 
 
+#***************************************************************************************
+#    Title: HTTP
+#    Availability: https://developer.mozilla.org/en-US/
+#
+#***************************************************************************************/
+
+
 class MyWebServer(socketserver.BaseRequestHandler):
 
 
@@ -75,7 +82,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             # If dir exsits and ends with a /
             elif(os.path.isdir(path)):
                 if requestedFile[-1] != "/":
-                    self.handle_301_status_codes(301)
+                    self.handle_301_status_codes(301, requestedFile + "/")
                 else:
                     self.handle_200_status_codes(200, "html", path+"/index.html")
             
@@ -107,13 +114,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.request.sendall(self.http_message.encode('utf-8'))
     
     # Handles the 301 status codes
-    def handle_301_status_codes(self, status_code):
+    def handle_301_status_codes(self, status_code, path):
         self.http_message = ("HTTP/1.1 %d Moved Permanently\n" % (status_code) +
-                            "Content-Type: text/html\n\n"+
-                            "<html><body><center><h1>%d Moved Permanently</center></h1>\n" % (status_code)+
-                            "</body></html>")
+                             "Location: %s\n\n" % (path))
+        
         self.request.sendall(self.http_message.encode('utf-8'))
-
 
    
         
