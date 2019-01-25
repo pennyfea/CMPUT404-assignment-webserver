@@ -3,6 +3,7 @@
 #  coding: utf-8 
 import socketserver
 import os
+import sys
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -103,7 +104,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             else:
                 self.handle_404_405_codes(404, "Not found")
         
-        # IF NOT GET METHOD, 405 STATUS CODE
+        # If not GET method, 405 status code
         else:
             self.handle_404_405_codes(405, "Method Not Allowed")
         
@@ -111,7 +112,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
     # Handles status error codes
     def handle_404_405_codes(self, status_code, message):
         self.http_message = ("HTTP/1.1 %d %s\r\n" % (status_code, message) +
-                            "Content-Type: text/html\n\n"+
+                            "Content-Type: text/html\r\n"+
+                            "Content-Length: %d\n\n" % (sys.getsizeof(message) + sys.getsizeof(int(status_code))) +
                             "<html><body><center><h1>%d %s</center></h1>\n" % (status_code, message)+
                             "</body></html>")
 
@@ -120,7 +122,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
     # Handles the 200 status codes
     def handle_200_status_codes(self,  status_code, file_type, path):
         self.http_message = ("HTTP/1.1/ %d OK\r\n"  % (status_code)+
-                                        "Content-Type: text/%s\n\n" % (file_type)+
+                                        "Content-Type: text/%s\r\n" % (file_type)+
+                                        "Content-Length: %d\n\n" % (os.path.getsize(path))+
                                         open(path).read()) 
         self.request.sendall(self.http_message.encode('utf-8'))
     
