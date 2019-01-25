@@ -33,8 +33,20 @@ import os
 #***************************************************************************************
 #    Title: HTTP
 #    Availability: https://developer.mozilla.org/en-US/
+#     
+#    Title: Common pathname manipulations
+#    Availability: https://docs.python.org/3/library/os.path.html
+#       
+#    
+#    Title: http.server — HTTP servers
+#    Reason: Used for inspiration
+#    Availability: https://docs.python.org/3/library/http.server.html
 #
-#***************************************************************************************/
+#
+#    Title: Lab 2: TCP Proxy
+#    Reason: Better understanding of assignment
+#    Availability: https://uofa-cmput404.github.io/
+#***************************************************************************************
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
@@ -45,15 +57,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        # print ("Got a request of: %s\n" % self.data)
+        print ("Got a request of: %s\n" % self.data)
         # self.request.sendall(bytearray("OK",'utf-8'))
 
         httpRequest = self.data.splitlines()
-        print(self.data)
         httpRequestMethod = httpRequest[0].decode().split()
 
-        print(httpRequestMethod)
-        print("Request method: %s\n" % httpRequestMethod[0])
+        # print(httpRequestMethod)
+        # print("Request method: %s\n" % httpRequestMethod[0])
 
         if(httpRequestMethod[0] == "GET"):
             
@@ -61,8 +72,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
             ###########################################################
             requestedFile =  httpRequestMethod[1]
 
-            print(requestedFile)
-            print("Requested File: ", requestedFile)
+            # print(requestedFile)
+            # print("Requested File: ", requestedFile)
 
             path = os.path.abspath(os.getcwd() + self.dir + requestedFile)
             # print("Real path: ", os.path.realpath(path))
@@ -78,7 +89,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                                      
                 elif(path.endswith('.html')):
                     self.handle_200_status_codes(200, "html", path)
-                
+                                   
             # If dir exsits and ends with a /
             elif(os.path.isdir(path)):
                 if requestedFile[-1] != "/":
@@ -99,7 +110,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     # Handles status error codes
     def handle_404_405_codes(self, status_code, message):
-        self.http_message = ("HTTP/1.1 %d %s\n" % (status_code, message) +
+        self.http_message = ("HTTP/1.1 %d %s\r\n" % (status_code, message) +
                             "Content-Type: text/html\n\n"+
                             "<html><body><center><h1>%d %s</center></h1>\n" % (status_code, message)+
                             "</body></html>")
@@ -108,14 +119,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
     # Handles the 200 status codes
     def handle_200_status_codes(self,  status_code, file_type, path):
-        self.http_message = ("HTTP/1.1/ %d OK\n"  % (status_code)+
+        self.http_message = ("HTTP/1.1/ %d OK\r\n"  % (status_code)+
                                         "Content-Type: text/%s\n\n" % (file_type)+
                                         open(path).read()) 
         self.request.sendall(self.http_message.encode('utf-8'))
     
     # Handles the 301 status codes
     def handle_301_status_codes(self, status_code, path):
-        self.http_message = ("HTTP/1.1 %d Moved Permanently\n" % (status_code) +
+        self.http_message = ("HTTP/1.1 %d Moved Permanently\r\n" % (status_code) +
                              "Location: %s\n\n" % (path))
         
         self.request.sendall(self.http_message.encode('utf-8'))
